@@ -7,15 +7,14 @@ import {
   Button,
   Paper,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const API_BASE_URL = "https://wlppfehvu0.execute-api.eu-north-1.amazonaws.com/dev";
 
-// Store edited questions in memory for the current session
-const editedQuestions = {};
+// Store edited questions in memory
+export const editedQuestions = {};
 
 const EditQuestion = () => {
   const { id } = useParams();
@@ -28,7 +27,7 @@ const EditQuestion = () => {
     question_text: "",
     weight: 1,
     question_weight: 10,
-    options: {},
+    options: { type: "scale", min: 1, max: 5 },
   });
 
   useEffect(() => {
@@ -60,7 +59,7 @@ const EditQuestion = () => {
         question_text: question.question_text || "",
         weight: question.weight || 1,
         question_weight: question.question_weight || 10,
-        options: question.options || {},
+        options: question.options || { type: "scale", min: 1, max: 5 },
       });
     } catch (err) {
       console.error("Error fetching question:", err);
@@ -96,9 +95,8 @@ const EditQuestion = () => {
     setSubmitting(true);
     
     try {
-      // Store the edited question in memory
+      // Format data exactly as expected by the Lambda function
       const updatedQuestion = {
-        id: parseInt(id),
         topic: formData.topic,
         level: Number(formData.level),
         question_text: formData.question_text,
@@ -107,12 +105,33 @@ const EditQuestion = () => {
         options: formData.options
       };
       
-      // Save to session storage for persistence across page refreshes
-      editedQuestions[id] = updatedQuestion;
-      sessionStorage.setItem('editedQuestions', JSON.stringify(editedQuestions));
+      // Store in memory for immediate UI update
+      editedQuestions[id] = {
+        id: parseInt(id),
+        ...updatedQuestion
+      };
       
-      toast.success("Question updated in current session!");
-      setTimeout(() => navigate("/admin/panel"), 1500);
+      // Send to API with correct endpoint format
+      const response = await fetch(`${API_BASE_URL}/questions/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedQuestion),
+      });
+      
+      const responseData = await response.json();
+      
+      if (response.ok) {
+        toast.success("Question updated successfully!");
+        setTimeout(() => {
+          // Clear edited questions from memory since it's now in the database
+          delete editedQuestions[id];
+          navigate("/admin/panel");
+        }, 1500);
+      } else {
+        toast.error(`Error: ${responseData.error || "Update failed"}`);
+      }
     } catch (err) {
       console.error("Error updating question:", err);
       toast.error(`Error: ${err.message}`);
@@ -125,7 +144,7 @@ const EditQuestion = () => {
     <Container maxWidth="sm">
       <ToastContainer />
       {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "40px" }}>
+        <div className="flex justify-center mt-10">
           <CircularProgress />
         </div>
       ) : (
@@ -133,11 +152,6 @@ const EditQuestion = () => {
           <Typography variant="h5" gutterBottom>
             Edit Question ID: {id}
           </Typography>
-          
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Note: Changes will only be visible in the current browser session.
-          </Alert>
-          
           <form onSubmit={handleSubmit}>
             <TextField
               label="Topic"
@@ -208,7 +222,7 @@ const EditQuestion = () => {
                   }
                 })()
               }
-              helperText='Must be valid JSON (e.g. {"A": "Option A", "B": "Option B"})'
+              helperText='Must be valid JSON (e.g. {"type": "scale", "min": 1, "max": 5})'
             />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
               <Button 
@@ -232,15 +246,5 @@ const EditQuestion = () => {
     </Container>
   );
 };
-
-// Load any previously edited questions from session storage
-try {
-  const savedQuestions = sessionStorage.getItem('editedQuestions');
-  if (savedQuestions) {
-    Object.assign(editedQuestions, JSON.parse(savedQuestions));
-  }
-} catch (e) {
-  console.error("Error loading edited questions:", e);
-}
 
 export default EditQuestion;

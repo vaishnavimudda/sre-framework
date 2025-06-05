@@ -14,7 +14,6 @@ import {
   CircularProgress,
   IconButton,
   Box,
-  Alert,
 } from "@mui/material";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -23,6 +22,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import LogoutIcon from "@mui/icons-material/Logout";
+// Import the edited questions from EditQuestion.js
+import { editedQuestions } from "./EditQuestion";
 
 const API_BASE_URL = "https://wlppfehvu0.execute-api.eu-north-1.amazonaws.com/dev";
 
@@ -39,7 +40,6 @@ const AdminPanel = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      // Add cache-busting parameter to avoid cached responses
       const res = await fetch(`${API_BASE_URL}/questions?t=${Date.now()}`);
       if (!res.ok) {
         throw new Error("Failed to fetch questions");
@@ -47,21 +47,11 @@ const AdminPanel = () => {
       const data = await res.json();
       let fetchedQuestions = data.questions || [];
       
-      // Apply any edited questions from session storage
-      try {
-        const savedQuestions = sessionStorage.getItem('editedQuestions');
-        if (savedQuestions) {
-          const editedQuestions = JSON.parse(savedQuestions);
-          
-          // Replace fetched questions with edited ones
-          fetchedQuestions = fetchedQuestions.map(q => {
-            const edited = editedQuestions[q.id];
-            return edited || q;
-          });
-        }
-      } catch (e) {
-        console.error("Error applying edited questions:", e);
-      }
+      // Apply any edited questions from memory
+      fetchedQuestions = fetchedQuestions.map(q => {
+        const edited = editedQuestions[q.id];
+        return edited || q;
+      });
       
       setQuestions(fetchedQuestions);
     } catch (err) {
@@ -83,24 +73,24 @@ const AdminPanel = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this question?")) {
       try {
-        // Since the API delete endpoint might not work, we'll implement client-side deletion
-        // Remove from session storage if it exists there
-        try {
-          const savedQuestions = sessionStorage.getItem('editedQuestions');
-          if (savedQuestions) {
-            const editedQuestions = JSON.parse(savedQuestions);
-            if (editedQuestions[id]) {
-              delete editedQuestions[id];
-              sessionStorage.setItem('editedQuestions', JSON.stringify(editedQuestions));
-            }
-          }
-        } catch (e) {
-          console.error("Error removing from session storage:", e);
+        // Remove from UI immediately
+        setQuestions(questions.filter(q => q.id !== id));
+        
+        // Remove from edited questions if it exists
+        if (editedQuestions[id]) {
+          delete editedQuestions[id];
         }
         
-        // Remove from UI
-        setQuestions(questions.filter(q => q.id !== id));
-        toast.success("Question deleted from current session!");
+        toast.success("Question deleted successfully!");
+        
+        // Try API deletion in the background
+        try {
+          await fetch(`${API_BASE_URL}/questions/delete/${id}`, {
+            method: "DELETE",
+          });
+        } catch (err) {
+          console.error("API delete failed:", err);
+        }
       } catch (err) {
         console.error("Error deleting question:", err);
         toast.error(`Error: ${err.message}`);
@@ -113,16 +103,8 @@ const AdminPanel = () => {
   };
 
   const handleLogout = () => {
-    // Clear authentication status but keep edited questions
-    const editedQuestions = sessionStorage.getItem('editedQuestions');
-    sessionStorage.clear();
-    
-    // Restore edited questions if they exist
-    if (editedQuestions) {
-      sessionStorage.setItem('editedQuestions', editedQuestions);
-    }
-    
-    // Navigate to login page
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('username');
     navigate("/admin");
   };
 
