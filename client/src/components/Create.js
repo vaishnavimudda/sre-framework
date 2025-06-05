@@ -15,24 +15,21 @@ const CreateQuestionForm = () => {
     topic: "",
     level: "",
     question_text: "",
-    options: ["", "", "", "", ""], // 5 options
     weight: 1,
     question_weight: 10,
+    options: {
+      max: 5,
+      min: 1,
+      type: "scale"
+    }
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  const handleChange = (e, index) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name.startsWith("option")) {
-      const updatedOptions = [...formData.options];
-      updatedOptions[index] = value;
-      setFormData({ ...formData, options: updatedOptions });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -41,12 +38,20 @@ const CreateQuestionForm = () => {
     setMessage(null);
 
     try {
+      // Format the data for submission
+      const submissionData = {
+        ...formData,
+        level: Number(formData.level),
+        weight: Number(formData.weight),
+        question_weight: Number(formData.question_weight)
+      };
+
       const res = await fetch(
         "https://wlppfehvu0.execute-api.eu-north-1.amazonaws.com/dev/questions/create",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(submissionData),
         }
       );
 
@@ -57,9 +62,13 @@ const CreateQuestionForm = () => {
           topic: "",
           level: "",
           question_text: "",
-          options: ["", "", "", "", ""],
           weight: 1,
           question_weight: 10,
+          options: {
+            max: 5,
+            min: 1,
+            type: "scale"
+          }
         });
       } else {
         setMessage({ type: "error", text: data.error || "Submission failed." });
@@ -96,6 +105,7 @@ const CreateQuestionForm = () => {
         <TextField
           label="Level"
           name="level"
+          type="number"
           fullWidth
           margin="normal"
           required
@@ -114,23 +124,9 @@ const CreateQuestionForm = () => {
           onChange={handleChange}
         />
 
-        <Typography variant="subtitle1" mt={2}>
-          Options
-        </Typography>
-        <Grid container spacing={2}>
-          {formData.options.map((opt, idx) => (
-            <Grid item xs={12} sm={6} key={idx}>
-              <TextField
-                label={`Option ${idx + 1}`}
-                name={`option${idx}`}
-                fullWidth
-                required
-                value={opt}
-                onChange={(e) => handleChange(e, idx)}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <Alert severity="info" sx={{ my: 2 }}>
+          Using default scale options (min: 1, max: 5, type: scale)
+        </Alert>
 
         <TextField
           label="Weight"

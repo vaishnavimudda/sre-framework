@@ -1,13 +1,32 @@
 // import React, { useEffect, useState } from 'react';
-// import { Container, Typography, Card, CardContent, RadioGroup, Radio, FormControlLabel, Button } from '@mui/material';
+// import {
+//   Container,
+//   Typography,
+//   Card,
+//   CardContent,
+//   RadioGroup,
+//   Radio,
+//   FormControlLabel,
+//   Button,
+//   Box,
+//   Paper,
+// } from '@mui/material';
 // import { fetchQuestions, submitAnswers } from '../services/api';
 // import { useNavigate } from 'react-router-dom';
- 
+
+// const scaleLabels = [
+//   '1 – Very Low',
+//   '2 – Low',
+//   '3 – Medium',
+//   '4 – High',
+//   '5 – Very High',
+// ];
+
 // const Questionnaire = () => {
 //   const [questions, setQuestions] = useState([]);
 //   const [answers, setAnswers] = useState({});
 //   const navigate = useNavigate();
- 
+
 //   useEffect(() => {
 //     const loadQuestions = async () => {
 //       try {
@@ -22,54 +41,76 @@
 //         alert('Failed to load questions.');
 //       }
 //     };
- 
+
 //     loadQuestions();
 //   }, []);
- 
+
 //   const handleOptionChange = (questionId, selectedOption) => {
 //     setAnswers({ ...answers, [questionId]: selectedOption });
 //   };
- 
+
 //   const handleSubmit = async () => {
 //     try {
 //       const userId = localStorage.getItem('userId');
-//   if (!userId) {
-//     alert("User ID not found. Please restart the assessment.");
-//     return;
-//   }
-//       const payload = Object.entries(answers)
-//   .map(([question_id, response_value]) => ({
-//     question_id: parseInt(question_id, 10),
-//     response_value: parseInt(response_value, 10),
-//     user_id: userId,
-//   }));
-//   const result = await submitAnswers(payload);
-//   console.log("Full API response:", result);
-//   // console.log("Data from API:", result.data);
- 
-//   const score = result;
- 
-//     console.log(" Maturity result:", score);
-//     // Pass the raw numeric score to ResultPage
-// if ([1, 2, 3, 4, 5].includes(score)) {
-//   navigate('/result', { state: { levelNumber: score } });
-// } else {
-//   console.error("Maturity level mapping failed.");
-// }
- 
- 
-//   } catch (error) {
-//     console.error("Submission error:", error);
-//   }
-// };
- 
+//       if (!userId) {
+//         alert("User ID not found. Please restart the assessment.");
+//         return;
+//       }
+
+//       const payload = Object.entries(answers).map(([question_id, response_value]) => ({
+//         question_id: parseInt(question_id, 10),
+//         response_value: parseInt(response_value, 10),
+//         user_id: userId,
+//       }));
+
+//       const result = await submitAnswers(payload);
+//       console.log("Full API response:", result);
+
+//       const score = result;
+
+//       if ([1, 2, 3, 4, 5].includes(score)) {
+//         navigate('/result', { state: { levelNumber: score } });
+//       } else {
+//         console.error("Maturity level mapping failed.");
+//       }
+//     } catch (error) {
+//       console.error("Submission error:", error);
+//     }
+//   };
+
 //   return (
- 
-//     <Container maxWidth="md" sx={{ mt: 4 }}>
-//       <Typography variant="h5" gutterBottom>Questions</Typography>
-//       {questions.map((q, idx) => {
-//         console.log("Rendering question:", q);
-//         return (
+//     <Container maxWidth="md" sx={{ mt: 10 }}>
+//       {/* Fixed scale label header */}
+//       <Paper
+//         elevation={3}
+//         sx={{
+//           position: 'fixed',
+//           top: 64, // Adjust based on your AppBar height
+//           left: 0,
+//           right: 0,
+//           zIndex: 1000,
+//           py: 1,
+//           backgroundColor: '#f5f5f5',
+//         }}
+//       >
+//         <Container maxWidth="md">
+//           <Box display="flex" justifyContent="space-between">
+//             {scaleLabels.map((label, index) => (
+//               <Typography key={index} variant="caption" sx={{ textAlign: 'center', flex: 1 }}>
+//                 {label}
+//               </Typography>
+//             ))}
+//           </Box>
+//         </Container>
+//       </Paper>
+
+//       <Typography variant="h5" gutterBottom sx={{ mt: 2 }}>
+//         Questions
+//       </Typography>
+
+//       {/* Add padding top to avoid hiding first question behind fixed header */}
+//       <Box mt={8}>
+//         {questions.map((q, idx) => (
 //           <Card key={q.id || idx} sx={{ mb: 2 }}>
 //             <CardContent>
 //               <Typography variant="subtitle1">
@@ -80,102 +121,81 @@
 //                 onChange={(e) => handleOptionChange(q.id, e.target.value)}
 //               >
 //                 {Array.isArray(q.options) &&
-//   (q.options.includes('scale')
-//     ? [1, 2, 3, 4, 5].map((option) => (
-//         <FormControlLabel
-//           key={option}
-//           value={String(option)}
-//           control={<Radio />}
-//           label={String(option)}
-//         />
-//       ))
-//     : q.options
-//         .slice()
-//         .sort((a, b) => Number(a) - Number(b))
-//         .map((option, i) => (
-//           <FormControlLabel
-//             key={i}
-//             value={option}
-//             control={<Radio />}
-//             label={option}
-//           />
-//         ))
-//   )
-// }
- 
+//                   (q.options.includes('scale')
+//                     ? [1, 2, 3, 4, 5].map((option) => (
+//                         <FormControlLabel
+//                           key={option}
+//                           value={String(option)}
+//                           control={<Radio />}
+//                           label={String(option)}
+//                         />
+//                       ))
+//                     : q.options
+//                         .slice()
+//                         .sort((a, b) => Number(a) - Number(b))
+//                         .map((option, i) => (
+//                           <FormControlLabel
+//                             key={i}
+//                             value={option}
+//                             control={<Radio />}
+//                             label={option}
+//                           />
+//                         )))}
 //               </RadioGroup>
 //             </CardContent>
 //           </Card>
-//         );
-//       })}
-//       <Button
-//         variant="contained"
-//         color="primary"
-//         onClick={handleSubmit}
-//         disabled={Object.keys(answers).length !== questions.length}
-//       >
-//         Submit Answers
-//       </Button>
+//         ))}
+
+//         <Button
+//           variant="contained"
+//           color="primary"
+//           onClick={handleSubmit}
+//           disabled={Object.keys(answers).length !== questions.length}
+//         >
+//           Submit Answers
+//         </Button>
+//       </Box>
 //     </Container>
 //   );
- 
- 
 // };
- 
+
 // export default Questionnaire;
- 
- 
 import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
-  Button,
-  Box,
-  Paper,
+import {Container,Typography,Card,CardContent,RadioGroup,Radio,FormControlLabel,Button,Box,Divider
 } from '@mui/material';
 import { fetchQuestions, submitAnswers } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-
-const scaleLabels = [
-  '1 – Very Low',
-  '2 – Low',
-  '3 – Medium',
-  '4 – High',
-  '5 – Very High',
-];
-
+ 
 const Questionnaire = () => {
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        const data = await fetchQuestions();
-        console.log('Fetched questions:', data);
-        if (Array.isArray(data)) {
-          setQuestions(data);
-        } else {
-          alert('Unexpected data format');
-        }
-      } catch (error) {
-        alert('Failed to load questions.');
+ 
+  const [loading, setLoading] = useState(true);
+ 
+useEffect(() => {
+  const loadQuestions = async () => {
+    try {
+      const data = await fetchQuestions();
+      if (Array.isArray(data)) {
+        setQuestions(data);
+      } else {
+        alert('Unexpected data format');
       }
-    };
-
-    loadQuestions();
-  }, []);
-
+    } catch (error) {
+      alert('Failed to load questions.');
+    } finally {
+      setLoading(false);  // mark loading as done, success or fail
+    }
+  };
+ 
+  loadQuestions();
+}, []);
+ 
   const handleOptionChange = (questionId, selectedOption) => {
     setAnswers({ ...answers, [questionId]: selectedOption });
   };
-
+ 
   const handleSubmit = async () => {
     try {
       const userId = localStorage.getItem('userId');
@@ -183,107 +203,163 @@ const Questionnaire = () => {
         alert("User ID not found. Please restart the assessment.");
         return;
       }
-
-      const payload = Object.entries(answers).map(([question_id, response_value]) => ({
+ 
+      const answerPayloads = Object.entries(answers).map(([question_id, response_value]) => ({
         question_id: parseInt(question_id, 10),
         response_value: parseInt(response_value, 10),
         user_id: userId,
       }));
-
-      const result = await submitAnswers(payload);
-      console.log("Full API response:", result);
-
-      const score = result;
-
-      if ([1, 2, 3, 4, 5].includes(score)) {
-        navigate('/result', { state: { levelNumber: score } });
+ 
+      const maturityScore = await submitAnswers(answerPayloads);
+ 
+      if (maturityScore >= 1 && maturityScore <= 5) {
+        navigate('/result', { state: { levelNumber: maturityScore } });
       } else {
-        console.error("Maturity level mapping failed.");
+        console.error("Invalid maturity score received:", maturityScore);
+        alert("Unexpected score received. Please try again.");
       }
     } catch (error) {
       console.error("Submission error:", error);
+      alert("Something went wrong while submitting your answers.");
     }
   };
-
+ 
   return (
-    <Container maxWidth="md" sx={{ mt: 10 }}>
-      {/* Fixed scale label header */}
-      <Paper
-        elevation={3}
-        sx={{
-          position: 'fixed',
-          top: 64, // Adjust based on your AppBar height
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          py: 1,
-          backgroundColor: '#f5f5f5',
-        }}
-      >
-        <Container maxWidth="md">
-          <Box display="flex" justifyContent="space-between">
-            {scaleLabels.map((label, index) => (
-              <Typography key={index} variant="caption" sx={{ textAlign: 'center', flex: 1 }}>
-                {label}
-              </Typography>
-            ))}
-          </Box>
-        </Container>
-      </Paper>
-
-      <Typography variant="h5" gutterBottom sx={{ mt: 2 }}>
-        Questions
-      </Typography>
-
-      {/* Add padding top to avoid hiding first question behind fixed header */}
-      <Box mt={8}>
-        {questions.map((q, idx) => (
-          <Card key={q.id || idx} sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography variant="subtitle1">
-                Q{idx + 1}: {q.question_text || 'No question text'}
-              </Typography>
-              <RadioGroup
-                value={answers[q.id] || ''}
-                onChange={(e) => handleOptionChange(q.id, e.target.value)}
-              >
-                {Array.isArray(q.options) &&
-                  (q.options.includes('scale')
-                    ? [1, 2, 3, 4, 5].map((option) => (
-                        <FormControlLabel
-                          key={option}
-                          value={String(option)}
-                          control={<Radio />}
-                          label={String(option)}
-                        />
-                      ))
-                    : q.options
-                        .slice()
-                        .sort((a, b) => Number(a) - Number(b))
-                        .map((option, i) => (
-                          <FormControlLabel
-                            key={i}
-                            value={option}
-                            control={<Radio />}
-                            label={option}
-                          />
-                        )))}
-              </RadioGroup>
-            </CardContent>
-          </Card>
-        ))}
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={Object.keys(answers).length !== questions.length}
+    <Container maxWidth={false} disableGutters>
+  {/* Sticky Header: Title + Progress + Instructions */}
+  <Box
+    sx={{
+      position: 'sticky',
+      top: 0,  // sticks at very top
+      backgroundColor: '#fff',
+      borderBottom: '1px solid #ddd',
+      zIndex: 1100,
+      py: 2,
+      px: 3,
+      boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+      mb: 4,
+    }}
+  >
+    <Typography
+      variant="h4"
+      fontWeight="bold"
+      sx={{ color: '#1976d2', mb: 1, textAlign: 'center' }}
+    >
+      SRE Maturity Assessment
+    </Typography>
+ 
+    <Typography
+      variant="body1"
+      sx={{ color: '#555', textAlign: 'center', fontWeight: 500 }}
+    >
+      Please select a number from 1 to 5 for each question, indicating how well you meet each practice.
+      <br />
+      <strong>Scale:</strong> 1 - Very Low | 2 - Low | 3 - Medium | 4 - High | 5 - Very High
+    </Typography>
+ 
+    <Typography
+      variant="subtitle1"
+      sx={{
+        fontWeight: 600,
+        color: Object.keys(answers).length === questions.length ? 'green' : '#1976d2',
+        textAlign: 'center',
+        mb: 1,
+        fontSize: '1.1rem',
+      }}
+    >
+      Answered {Object.keys(answers).length} of {questions.length} questions
+    </Typography>
+ 
+  </Box>
+ 
+  {/* Questions List (scrolls under the sticky header) */}
+  {loading ? (
+  <Typography variant="h6" textAlign="center" sx={{ mt: 5 }}>
+    Loading questions, please wait...
+  </Typography>
+) : (
+  questions.map((q, idx) => (
+    <Card key={q.id || idx} sx={{ mb: 3, boxShadow: 3, position: 'relative' }}>
+      <CardContent>
+        {/* Topic Badge */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: '#e3f2fd',
+            color: '#0d47a1',
+            px: 2,
+            py: 0.5,
+            borderRadius: '20px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            userSelect: 'none',
+          }}
         >
-          Submit Answers
-        </Button>
-      </Box>
-    </Container>
+          {q.topic || 'General'}
+        </Box>
+ 
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Q{idx + 1}: {q.question_text}
+        </Typography>
+ 
+        <RadioGroup
+          value={answers[q.id] || ''}
+          onChange={(e) => handleOptionChange(q.id, e.target.value)}
+          row
+          sx={{
+            mt: 1,
+            pl: 4,
+            justifyContent: 'space-between',
+            maxWidth: 350,
+          }}
+        >
+          {[1, 2, 3, 4, 5].map((option) => (
+            <FormControlLabel
+              key={option}
+              value={String(option)}
+              control={<Radio color="primary" />}
+              label={String(option)}
+              sx={{
+                mx: 0.5,
+                userSelect: 'none',
+                fontWeight: answers[q.id] === String(option) ? 600 : 400,
+                color: answers[q.id] === String(option) ? '#1976d2' : 'inherit',
+              }}
+            />
+          ))}
+        </RadioGroup>
+      </CardContent>
+    </Card>
+  ))
+)}
+  <Divider sx={{ my: 5 }} />
+ 
+  <Box textAlign="center">
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={handleSubmit}
+      disabled={Object.keys(answers).length !== questions.length}
+      size="large"
+      sx={{
+        px: 6,
+        py: 1.5,
+        fontWeight: 'bold',
+        fontSize: '1.1rem',
+        borderRadius: 3,
+        boxShadow: '0 4px 10px rgba(25, 118, 210, 0.3)',
+        '&:hover': {
+          boxShadow: '0 6px 14px rgba(25, 118, 210, 0.5)',
+        },
+      }}
+    >
+      Submit Answers
+    </Button>
+  </Box>
+</Container>
   );
 };
-
+ 
 export default Questionnaire;
