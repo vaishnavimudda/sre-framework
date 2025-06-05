@@ -113,8 +113,15 @@ const AdminPanel = () => {
   };
 
   const handleLogout = () => {
-    // Clear any session data
+    // Clear authentication status but keep edited questions
+    const editedQuestions = sessionStorage.getItem('editedQuestions');
     sessionStorage.clear();
+    
+    // Restore edited questions if they exist
+    if (editedQuestions) {
+      sessionStorage.setItem('editedQuestions', editedQuestions);
+    }
+    
     // Navigate to login page
     navigate("/admin");
   };
@@ -153,10 +160,6 @@ const AdminPanel = () => {
           </Button>
         </div>
       </Box>
-
-      <Alert severity="info" sx={{ mb: 3 }}>
-        Note: Changes are only visible in the current browser session and will reset when you close the browser.
-      </Alert>
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "40px" }}>

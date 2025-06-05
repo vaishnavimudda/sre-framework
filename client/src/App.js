@@ -1,6 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -29,13 +28,12 @@ const theme = createTheme({
   },
 });
 
+// Simple authentication check
 function PrivateRoute({ children }) {
-  const auth = useAuth();
-
-  if (auth.isLoading) return <div>Loading...</div>;
-  if (!auth.isAuthenticated) {
-    auth.signinRedirect(); // redirect to Cognito
-    return null;
+  const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/admin" replace />;
   }
 
   return children;
@@ -51,7 +49,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/adminsignup" element={<AdminSignup />} />
+          <Route path="/admin/signup" element={<AdminSignup />} />
           <Route
             path="/admin/panel"
             element={
